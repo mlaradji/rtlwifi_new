@@ -167,12 +167,6 @@ void rtw_rx_fill_rx_status(struct rtw_dev *rtwdev,
 #else
 		rx_status->flag |= RX_FLAG_VHT;
 #endif
-	else if (pkt_stat->rate >= DESC_RATEMCS0)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
-		rx_status->encoding = RX_ENC_HT;
-#else
-		rx_status->flag |= RX_FLAG_VHT;
-#endif
 
 	if (rx_status->band == NL80211_BAND_5GHZ &&
 	    pkt_stat->rate >= DESC_RATE6M &&
