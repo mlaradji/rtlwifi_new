@@ -232,8 +232,7 @@ static void rtw_fw_send_h2c_command(struct rtw_dev *rtwdev,
 		goto out;
 	}
 
-//	ret = read_poll_timeout_atomic(rtw_read8, box_state,
-	ret = read_poll_timeout(rtw_read8, box_state,
+	ret = read_poll_timeout_atomic(rtw_read8, box_state,
 				       !((box_state >> box) & 0x1), 100, 3000,
 				       false, rtwdev, REG_HMETFR);
 

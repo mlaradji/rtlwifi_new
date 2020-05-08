@@ -130,8 +130,8 @@ int rtw_read8_physical_efuse(struct rtw_dev *rtwdev, u16 addr, u8 *data)
 	rtw_write32_mask(rtwdev, REG_EFUSE_CTRL, 0x3ff00, addr);
 	rtw_write32_clr(rtwdev, REG_EFUSE_CTRL, BIT_EF_FLAG);
 
-	ret = read_poll_timeout(rtw_read32, efuse_ctl, efuse_ctl & BIT_EF_FLAG,
-				1000, 100000, false, rtwdev, REG_EFUSE_CTRL);
+	ret = read_poll_timeout_atomic(rtw_read32, efuse_ctl, efuse_ctl & BIT_EF_FLAG,
+				       1000, 100000, false, rtwdev, REG_EFUSE_CTRL);
 	if (ret) {
 		*data = EFUSE_READ_FAIL;
 		return ret;
