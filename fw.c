@@ -197,7 +197,7 @@ static void rtw_fw_send_h2c_command(struct rtw_dev *rtwdev,
 				    u8 *h2c)
 {
 	u8 box;
-	u8 box_state = 0;
+	u8 box_state;
 	u32 box_reg, box_ex_reg;
 	int idx;
 	int ret;
@@ -330,6 +330,7 @@ void rtw_fw_do_iqk(struct rtw_dev *rtwdev, struct rtw_iqk_para *para)
 
 	rtw_fw_send_h2c_packet(rtwdev, h2c_pkt);
 }
+EXPORT_SYMBOL(rtw_fw_do_iqk);
 
 void rtw_fw_query_bt_info(struct rtw_dev *rtwdev)
 {
@@ -879,7 +880,7 @@ static struct sk_buff *rtw_get_rsvd_page_skb(struct ieee80211_hw *hw,
 		break;
 	case RSVD_NULL:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
- 		skb_new = ieee80211_nullfunc_get(hw, vif, false);
+		skb_new = ieee80211_nullfunc_get(hw, vif, false);
 #else
 		skb_new = ieee80211_nullfunc_get(hw, vif);
 #endif

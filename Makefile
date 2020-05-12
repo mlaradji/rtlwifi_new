@@ -21,9 +21,14 @@ COMPRESS_XZ := y
 endif
 
 EXTRA_CFLAGS += -O2
+EXTRA_CFLAGS += -DCONFIG_RTW88_8822BE=1
+EXTRA_CFLAGS += -DCONFIG_RTW88_8822CE=1
+EXTRA_CFLAGS += -DCONFIG_RTW88_8723DE=1
+EXTRA_CFLAGS += -DCONFIG_RTW88_DEBUG=1
+EXTRA_CFLAGS += -DCONFIG_RTW88_DEBUGFS=1
 
-obj-m	+= rtw88.o
-rtw88-objs += main.o \
+obj-m	+= rtw88_core.o
+rtw88_core-objs += main.o \
 	   mac80211.o \
 	   util.o \
 	   debug.o \
@@ -40,11 +45,26 @@ rtw88-objs += main.o \
 	   bf.o \
 	   regd.o
 
-rtw88-objs	+= rtw8822b.o rtw8822b_table.o
-rtw88-objs	+= rtw8822c.o rtw8822c_table.o
+obj-m       += rtw88_8822b.o
+rtw88_8822b-objs                := rtw8822b.o rtw8822b_table.o
 
-obj-m		+= rtwpci.o
-rtwpci-objs	:= pci.o
+obj-m      += rtw88_8822be.o
+rtw88_8822be-objs               := rtw8822be.o
+
+obj-m       += rtw88_8822c.o
+rtw88_8822c-objs                := rtw8822c.o rtw8822c_table.o
+
+obj-m      += rtw88_8822ce.o
+rtw88_8822ce-objs               := rtw8822ce.o
+
+obj-m       += rtw88_8723d.o
+rtw88_8723d-objs                := rtw8723d.o rtw8723d_table.o
+
+obj-m      += rtw88_8723de.o
+rtw88_8723de-objs               := rtw8723de.o
+
+obj-m         += rtw88_pci.o
+rtw88_pci-objs                  := pci.o
 
 ccflags-y += -D__CHECK_ENDIAN__
 
@@ -57,8 +77,7 @@ ifeq (,$(wildcard ./backup_drivers.tar))
 endif
 
 	@mkdir -p $(MODDESTDIR)
-	@install -p -D -m 644 rtwpci.ko $(MODDESTDIR)	
-	@install -p -D -m 644 rtw88.ko $(MODDESTDIR)	
+	@install -p -D -m 644 *.ko $(MODDESTDIR)	
 	@mkdir -p /lib/firmware/rtw88
 	@cp *.bin /lib/firmware/rtw88/.
 ifeq ($(COMPRESS_GZIP), y)
@@ -86,7 +105,7 @@ endif
 	@echo "Uninstall rtw88 SUCCESS"
 
 clean:
-	@rm -fr */*.mod.c */*.mod */*.o .*.cmd */.*.o.cmd */*.ko *~ */.*.o.d .cache.mk
+	@rm -fr *.mod.c *.mod *.o .*.cmd .*.o.cmd *.ko *~ .*.o.d .cache.mk
 	@rm -fr .tmp_versions
 	@rm -fr Modules.symvers
 	@rm -fr Module.symvers
