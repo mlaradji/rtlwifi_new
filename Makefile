@@ -91,7 +91,7 @@ endif
 
 	@#copy firmware images to target folder
 	@mkdir -p $(FIRMWAREDIR)/rtw88/
-	@cp -f firmware/*.bin $(FIRMWAREDIR)/rtw88/
+	@cp -f *.bin $(FIRMWAREDIR)/rtw88/
 	@echo "Install rtw88 SUCCESS"
 
 uninstall:
