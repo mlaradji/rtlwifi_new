@@ -1766,14 +1766,18 @@ struct rtw_dev {
         } \
         (cond) ? 0 : -ETIMEDOUT; \
 })
-#define read_poll_timeout_atomic(op, val, cond, delay_us, timeout_us, \
-                                        delay_before_read, args...) \
+#endif
+
+#ifndef read_poll_timeout
+#define read_poll_timeout(op, val, cond, sleep_us, timeout_us, \
+                                sleep_before_read, args...) \
 ({ \
         u64 __timeout_us = (timeout_us); \
-        unsigned long __delay_us = (delay_us); \
+        unsigned long __sleep_us = (sleep_us); \
         ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
-        if (delay_before_read && __delay_us) \
-                udelay(__delay_us); \
+        might_sleep_if((__sleep_us) != 0); \
+        if (sleep_before_read && __sleep_us) \
+                usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
         for (;;) { \
                 (val) = op(args); \
                 if (cond) \
@@ -1783,8 +1787,8 @@ struct rtw_dev {
                         (val) = op(args); \
                         break; \
                 } \
-                if (__delay_us) \
-                        udelay(__delay_us); \
+                if (__sleep_us) \
+                        usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
         } \
         (cond) ? 0 : -ETIMEDOUT; \
 })
