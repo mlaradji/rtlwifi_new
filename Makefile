@@ -103,7 +103,7 @@ uninstall:
 	@modprobe -r rtw_8822ce
 	@modprobe -r rtw_8723de
 	@rm $(MODDESTDIR)/rtw_*.ko
-	@rm $(MODDESTDIR)/rtw88_core.ko
+	@rm $(MODDESTDIR)/rtw_core.ko
 ifneq (,$(wildcard ./backup_drivers.tar))
 	@echo Restoring backups
 	@tar xPf backup_drivers.tar
