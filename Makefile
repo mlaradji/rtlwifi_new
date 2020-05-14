@@ -45,26 +45,26 @@ rtw88_core-objs += main.o \
 	   bf.o \
 	   regd.o
 
-obj-m       += rtw88_8822b.o
-rtw88_8822b-objs                := rtw8822b.o rtw8822b_table.o
+obj-m       += rtw_8822b.o
+rtw_8822b-objs                := rtw8822b.o rtw8822b_table.o
 
-obj-m      += rtw88_8822be.o
-rtw88_8822be-objs               := rtw8822be.o
+obj-m      += rtw_8822be.o
+rtw_8822be-objs               := rtw8822be.o
 
-obj-m       += rtw88_8822c.o
-rtw88_8822c-objs                := rtw8822c.o rtw8822c_table.o
+obj-m       += rtw_8822c.o
+rtw_8822c-objs                := rtw8822c.o rtw8822c_table.o
 
-obj-m      += rtw88_8822ce.o
-rtw88_8822ce-objs               := rtw8822ce.o
+obj-m      += rtw_8822ce.o
+rtw_8822ce-objs               := rtw8822ce.o
 
-obj-m       += rtw88_8723d.o
-rtw88_8723d-objs                := rtw8723d.o rtw8723d_table.o
+obj-m       += rtw_8723d.o
+rtw_8723d-objs                := rtw8723d.o rtw8723d_table.o
 
-obj-m      += rtw88_8723de.o
-rtw88_8723de-objs               := rtw8723de.o
+obj-m      += rtw_8723de.o
+rtw_8723de-objs               := rtw8723de.o
 
-obj-m         += rtw88_pci.o
-rtw88_pci-objs                  := pci.o
+obj-m         += rtwpci.o
+rtwpci-objs                  := pci.o
 
 ccflags-y += -D__CHECK_ENDIAN__
 
@@ -74,6 +74,10 @@ install: all
 ifeq (,$(wildcard ./backup_drivers.tar))
 	@echo Making backups
 	@tar cPf backup_drivers.tar $(MODDESTDIR)
+	@modprobe -r rtwpci
+	@modprobe -r rtw88
+	@rm $(MODDESTDIR)/rtw88.ko
+	@rm $(MODDESTDIR)/rtwpci.ko
 endif
 
 	@mkdir -p $(MODDESTDIR)
@@ -95,9 +99,15 @@ endif
 	@echo "Install rtw88 SUCCESS"
 
 uninstall:
+	@modprobe -r rtw_8822be
+	@modprobe -r rtw_8822ce
+	@modprobe -r rtw_8723de
+	@rm $(MODDESTDIR)/rtw_*.ko
+	@rm $(MODDESTDIR)/rtw88_core.ko
 ifneq (,$(wildcard ./backup_drivers.tar))
 	@echo Restoring backups
-	@tar xvPf backup_drivers.tar
+	@tar xPf backup_drivers.tar
+	@rm backup_drivers.tar
 endif
 	
 	@depmod -a
