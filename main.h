@@ -1746,13 +1746,6 @@ struct rtw_dev {
 
 #include "hci.h"
 
-#ifndef __must_be_array
-#define __must_be_array(a)     BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
-#endif
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
-#endif
-
 #ifndef read_poll_timeout_atomic
 #define read_poll_timeout_atomic(op, val, cond, delay_us, timeout_us, \
                                         delay_before_read, args...) \
