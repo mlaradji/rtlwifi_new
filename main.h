@@ -1166,6 +1166,9 @@ struct rtw_chip_info {
 	const struct wiphy_wowlan_support *wowlan_stub;
 	const u8 max_sched_scan_ssids;
 
+	/* for 8821c set channel */
+	u32 ch_param[3];
+
 	/* coex paras */
 	u32 coex_para_ver;
 	u8 bt_desired_ver;
@@ -1545,6 +1548,8 @@ struct rtw_efuse {
 	u8 apa_type;
 	bool ext_pa_2g;
 	bool ext_pa_5g;
+	u8 tx_bb_swing_setting_2g;
+	u8 tx_bb_swing_setting_5g;
 
 	bool btcoex;
 	/* bt share antenna with wifi */
