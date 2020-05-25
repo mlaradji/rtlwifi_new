@@ -76,8 +76,8 @@ ifeq (,$(wildcard ./backup_drivers.tar))
 	@tar cPf backup_drivers.tar $(MODDESTDIR)
 	@modprobe -r rtwpci
 	@modprobe -r rtw88
-	@rm $(MODDESTDIR)/rtw88*.ko
-	@rm $(MODDESTDIR)/rtwpci.ko
+	@rm -f $(MODDESTDIR)/rtw88*.ko
+	@rm -f $(MODDESTDIR)/rtwpci.ko
 endif
 
 	@mkdir -p $(MODDESTDIR)
