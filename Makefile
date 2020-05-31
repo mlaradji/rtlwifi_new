@@ -22,6 +22,7 @@ endif
 
 EXTRA_CFLAGS += -O2
 EXTRA_CFLAGS += -DCONFIG_RTW88_8822BE=1
+EXTRA_CFLAGS += -DCONFIG_RTW88_8821CE=1
 EXTRA_CFLAGS += -DCONFIG_RTW88_8822CE=1
 EXTRA_CFLAGS += -DCONFIG_RTW88_8723DE=1
 EXTRA_CFLAGS += -DCONFIG_RTW88_DEBUG=1
@@ -62,6 +63,12 @@ rtw_8723d-objs                := rtw8723d.o rtw8723d_table.o
 
 obj-m      += rtw_8723de.o
 rtw_8723de-objs               := rtw8723de.o
+
+obj-m	+= rtw_8821c.o
+rtw_8821c-objs		:= rtw8821c.o rtw8821c_table.o
+
+obj-m	+= rtw_8821ce.o
+rtw_8821ce-objs		:= rtw8821ce.o
 
 obj-m         += rtw_pci.o
 rtw_pci-objs                  := pci.o

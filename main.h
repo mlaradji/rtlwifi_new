@@ -54,6 +54,57 @@
 
 #define RTW_TP_SHIFT			18 /* bytes/2s --> Mbps */
 
+#ifndef read_poll_timeout
+#define read_poll_timeout(op, val, cond, sleep_us, timeout_us, \
+                                sleep_before_read, args...) \
+({ \
+        u64 __timeout_us = (timeout_us); \
+        unsigned long __sleep_us = (sleep_us); \
+        ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
+        might_sleep_if((__sleep_us) != 0); \
+        if (sleep_before_read && __sleep_us) \
+                usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
+        for (;;) { \
+                (val) = op(args); \
+                if (cond) \
+                        break; \
+                if (__timeout_us && \
+                    ktime_compare(ktime_get(), __timeout) > 0) { \
+                        (val) = op(args); \
+                        break; \
+                } \
+                if (__sleep_us) \
+                        usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
+        } \
+        (cond) ? 0 : -ETIMEDOUT; \
+})
+#endif
+
+#ifndef read_poll_timeout_atomic
+#define read_poll_timeout_atomic(op, val, cond, delay_us, timeout_us, \
+                                        delay_before_read, args...) \
+({ \
+        u64 __timeout_us = (timeout_us); \
+        unsigned long __delay_us = (delay_us); \
+        ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
+        if (delay_before_read && __delay_us) \
+                udelay(__delay_us); \
+        for (;;) { \
+                (val) = op(args); \
+                if (cond) \
+                        break; \
+                if (__timeout_us && \
+                    ktime_compare(ktime_get(), __timeout) > 0) { \
+                        (val) = op(args); \
+                        break; \
+                } \
+                if (__delay_us) \
+                        udelay(__delay_us); \
+        } \
+        (cond) ? 0 : -ETIMEDOUT; \
+})
+#endif
+
 extern bool rtw_bf_support;
 extern unsigned int rtw_fw_lps_deep_mode;
 extern unsigned int rtw_debug_mask;
@@ -1196,7 +1247,6 @@ struct rtw_chip_info {
 	const struct coex_rf_para *wl_rf_para_tx;
 	const struct coex_rf_para *wl_rf_para_rx;
 	const struct coex_5g_afh_map *afh_5g;
-	const struct rtw_hw_reg *btg_reg;
 	const struct rtw_reg_domain *coex_info_hw_regs;
 };
 
@@ -1484,6 +1534,7 @@ struct rtw_dm_info {
 	u8 thermal_avg[RTW_RF_PATH_MAX];
 	u8 thermal_meter_k;
 	s8 delta_power_index[RTW_RF_PATH_MAX];
+	s8 delta_power_index_last[RTW_RF_PATH_MAX];
 	u8 default_ofdm_index;
 	bool pwr_trk_triggered;
 	bool pwr_trk_init_trigger;
@@ -1501,6 +1552,7 @@ struct rtw_dm_info {
 	/* [bandwidth 0:20M/1:40M][number of path] */
 	u8 cck_pd_lv[2][RTW_RF_PATH_MAX];
 	u32 cck_fa_avg;
+	u8 cck_pd_default;
 
 	/* save the last rx phy status for debug */
 	s8 rx_snr[RTW_RF_PATH_MAX];
@@ -1744,64 +1796,11 @@ struct rtw_dev {
 	struct rtw_fw_state wow_fw;
 	struct rtw_wow_param wow;
 
-	bool need_rfk;
-
 	/* hci related data, must be last */
 	u8 priv[] __aligned(sizeof(void *));
 };
 
 #include "hci.h"
-
-#ifndef read_poll_timeout_atomic
-#define read_poll_timeout_atomic(op, val, cond, delay_us, timeout_us, \
-                                        delay_before_read, args...) \
-({ \
-        u64 __timeout_us = (timeout_us); \
-        unsigned long __delay_us = (delay_us); \
-        ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
-        if (delay_before_read && __delay_us) \
-                udelay(__delay_us); \
-        for (;;) { \
-                (val) = op(args); \
-                if (cond) \
-                        break; \
-                if (__timeout_us && \
-                    ktime_compare(ktime_get(), __timeout) > 0) { \
-                        (val) = op(args); \
-                        break; \
-                } \
-                if (__delay_us) \
-                        udelay(__delay_us); \
-        } \
-        (cond) ? 0 : -ETIMEDOUT; \
-})
-#endif
-
-#ifndef read_poll_timeout
-#define read_poll_timeout(op, val, cond, sleep_us, timeout_us, \
-                                sleep_before_read, args...) \
-({ \
-        u64 __timeout_us = (timeout_us); \
-        unsigned long __sleep_us = (sleep_us); \
-        ktime_t __timeout = ktime_add_us(ktime_get(), __timeout_us); \
-        might_sleep_if((__sleep_us) != 0); \
-        if (sleep_before_read && __sleep_us) \
-                usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
-        for (;;) { \
-                (val) = op(args); \
-                if (cond) \
-                        break; \
-                if (__timeout_us && \
-                    ktime_compare(ktime_get(), __timeout) > 0) { \
-                        (val) = op(args); \
-                        break; \
-                } \
-                if (__sleep_us) \
-                        usleep_range((__sleep_us >> 2) + 1, __sleep_us); \
-        } \
-        (cond) ? 0 : -ETIMEDOUT; \
-})
-#endif
 
 static inline bool rtw_is_assoc(struct rtw_dev *rtwdev)
 {
@@ -1870,7 +1869,6 @@ void rtw_restore_reg(struct rtw_dev *rtwdev,
 		     struct rtw_backup_info *bckp, u32 num);
 void rtw_desc_to_mcsrate(u16 rate, u8 *mcs, u8 *nss);
 void rtw_set_channel(struct rtw_dev *rtwdev);
-void rtw_chip_prepare_tx(struct rtw_dev *rtwdev);
 void rtw_vif_port_config(struct rtw_dev *rtwdev, struct rtw_vif *rtwvif,
 			 u32 config);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
